@@ -381,6 +381,39 @@ window.storage = {
   async list(prefix, shared){ return { keys: [], shared: !!shared }; }
 };
 
+/* ---- respuestas: una colección por juego, un documento por jugador ----
+   (antes todas las respuestas vivían en un solo documento compartido: si dos
+   jugadores contestaban casi al mismo tiempo, el segundo pisaba lo que acababa
+   de guardar el primero. Con un documento por jugador, cada uno escribe solo
+   lo suyo y no hay forma de que se pisen entre sí). */
+function respCollectionName(gameId){ return 'responses_'+gameId; }
+async function getAllResponsesRaw(gameId){
+  const collName = respCollectionName(gameId);
+  if(db){
+    const snap = await db.collection(collName).get();
+    const out = {};
+    snap.forEach(doc => { out[doc.id] = doc.data().value; });
+    return out;
+  }
+  const out = {};
+  const prefix = lsKey(collName)+':';
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith(prefix)) out[k.slice(prefix.length)] = localStorage.getItem(k);
+  }
+  return out;
+}
+async function setOneResponseRaw(gameId, playerId, jsonValue){
+  const collName = respCollectionName(gameId);
+  if(db){ await db.collection(collName).doc(playerId).set({ value: jsonValue }); return; }
+  localStorage.setItem(lsKey(collName)+':'+playerId, jsonValue);
+}
+async function deleteOneResponseRaw(gameId, playerId){
+  const collName = respCollectionName(gameId);
+  if(db){ await db.collection(collName).doc(playerId).delete(); return; }
+  localStorage.removeItem(lsKey(collName)+':'+playerId);
+}
+
 const TYPE_LABEL = { tf:'Verdadero / Falso', choice:'Opción múltiple', texto:'Texto libre', foto:'Foto: ¿quién es?' };
 const DEFAULT_ROSTER = [{"id": "p-tomas-augustovski", "name": "Tomas Augustovski"}, {"id": "p-lucas-bacigalupo", "name": "Lucas Bacigalupo"}, {"id": "p-gregorio-augusto-bau", "name": "Gregorio Augusto Bau"}, {"id": "p-franco-becerra", "name": "Franco Becerra"}, {"id": "p-guido-bottignole-gonzalez", "name": "Guido Bottignole Gonzalez"}, {"id": "p-joaquin-carrara", "name": "Joaquín Carrara"}, {"id": "p-guido-casazza", "name": "Guido Casazza"}, {"id": "p-joaquin-nicolas-cejas-cuello", "name": "Joaquin Nicolás Cejas Cuello"}, {"id": "p-felipe-celnik-villa", "name": "Felipe Celnik Villa"}, {"id": "p-agustin-codo", "name": "Agustin Codo"}, {"id": "p-santiago-corbo", "name": "Santiago Corbo"}, {"id": "p-felipe-joaquin-couto-gutierrez", "name": "Felipe Joaquin Couto Gutierrez"}, {"id": "p-ignacio-de-crocci", "name": "Ignacio De Crocci"}, {"id": "p-inaki-etchmendy-de-la-serna", "name": "Iñaki Etchmendy de la Serna"}, {"id": "p-lorenzo-fernandez-piquin", "name": "Lorenzo Fernandez Piquin"}, {"id": "p-francisco-galli", "name": "Francisco Galli"}, {"id": "p-benicio-gonzalez-gale", "name": "Benicio Gonzalez Gale"}, {"id": "p-stefano-greppi", "name": "Stefano Greppi"}, {"id": "p-tomas-lew-ulrich", "name": "Tomas Lew Ulrich"}, {"id": "p-pedro-llavallol", "name": "Pedro Llavallol"}, {"id": "p-bautista-loye", "name": "Bautista Loye"}, {"id": "p-juan-ignacio-martello", "name": "Juan Ignacio Martello"}, {"id": "p-juan-ignacio-olaiz", "name": "Juan Ignacio Olaiz"}, {"id": "p-simon-paul", "name": "Simon Paul"}, {"id": "p-felipe-perez-arrieu", "name": "Felipe Pérez Arrieu"}, {"id": "p-ignacio-simon-peydro-alecha", "name": "Ignacio Simon Peydro Alecha"}, {"id": "p-galo-rodriguez-pistorio", "name": "Galo Rodriguez Pistorio"}, {"id": "p-joaquin-rosello", "name": "Joaquin Rosello"}, {"id": "p-ramon-hector-salanueva", "name": "Ramon Hector Salanueva"}, {"id": "p-felipe-agustin-soria-gonzalez", "name": "Felipe Agustin Soria Gonzalez"}, {"id": "p-pedro-staudenmann", "name": "Pedro Staudenmann"}, {"id": "p-mateo-temchuk", "name": "Mateo Temchuk"}, {"id": "p-baltazar-sanchez", "name": "Baltazar Sanchez"}, {"id": "p-javier-rogberg", "name": "Javier Rogberg"}, {"id": "p-juan-ignacio-de-renzis", "name": "Juan Ignacio De Renzis"}]; // plantel inicial (se usa solo la primera vez, si todavía no hay plantel guardado)
 
@@ -455,7 +488,11 @@ async function loadAll(){
       try{ await window.storage.set('roster', JSON.stringify(state.roster), true); }catch(e2){}
     }
     try{ const r = await window.storage.get('photoGroups', true); state.photoGroups = r ? JSON.parse(r.value) : []; }catch(e){ state.photoGroups = []; }
-    try{ const r = await window.storage.get('responses:'+gameId, true); state.responses = r ? JSON.parse(r.value) : {}; }catch(e){ state.responses = {}; }
+    try{
+      const raw = await getAllResponsesRaw(gameId);
+      state.responses = {};
+      for(const pid in raw){ try{ state.responses[pid] = JSON.parse(raw[pid]); }catch(e){} }
+    }catch(e){ state.responses = {}; }
     try{ const r = await window.storage.get('seasonScores', true); state.seasonScores = r ? JSON.parse(r.value) : {}; }catch(e){ state.seasonScores = {}; }
     try{ const r = await window.storage.get('coachPass', true); state.coachPass = r ? r.value : null; }catch(e){ state.coachPass = null; }
     try{ const r = await window.storage.get('my_id', false); state.myId = r ? r.value : ''; }catch(e){ state.myId = ''; }
@@ -470,7 +507,11 @@ async function refreshShared(){
   try{ const r = await window.storage.get('questions', true); state.questions = r ? JSON.parse(r.value) : []; }catch(e){}
   try{ const r = await window.storage.get('roster', true); state.roster = r ? JSON.parse(r.value) : []; }catch(e){}
   try{ const r = await window.storage.get('photoGroups', true); state.photoGroups = r ? JSON.parse(r.value) : []; }catch(e){}
-  try{ const r = await window.storage.get('responses:'+state.gameId, true); state.responses = r ? JSON.parse(r.value) : {}; }catch(e){ state.responses = {}; }
+  try{
+    const raw = await getAllResponsesRaw(state.gameId);
+    state.responses = {};
+    for(const pid in raw){ try{ state.responses[pid] = JSON.parse(raw[pid]); }catch(e){} }
+  }catch(e){ state.responses = {}; }
   try{ const r = await window.storage.get('seasonScores', true); state.seasonScores = r ? JSON.parse(r.value) : {}; }catch(e){}
   try{ const r = await window.storage.get('coachPass', true); state.coachPass = r ? r.value : null; }catch(e){}
 }
@@ -478,14 +519,17 @@ async function refreshShared(){
 async function saveQuestions(){ try{ await window.storage.set('questions', JSON.stringify(state.questions), true); }catch(e){ console.error(e); } }
 async function saveRoster(){ try{ await window.storage.set('roster', JSON.stringify(state.roster), true); }catch(e){ console.error(e); } }
 async function savePhotoGroups(){ try{ await window.storage.set('photoGroups', JSON.stringify(state.photoGroups), true); }catch(e){ console.error(e); } }
-async function saveResponses(){ try{ await window.storage.set('responses:'+state.gameId, JSON.stringify(state.responses), true); }catch(e){ console.error(e); } }
+async function saveResponseFor(playerId){
+  if(!state.responses[playerId]) return;
+  try{ await setOneResponseRaw(state.gameId, playerId, JSON.stringify(state.responses[playerId])); }catch(e){ console.error(e); }
+}
 async function saveSeasonScores(){ try{ await window.storage.set('seasonScores', JSON.stringify(state.seasonScores), true); }catch(e){ console.error(e); } }
 async function deletePlayerCompletely(id){
   const name = findRosterName(id) || state.responses[id]?.name || id;
   showConfirm(`Esto elimina a ${name} del plantel y borra, de forma permanente, sus respuestas y su puntaje acumulado. ¿Seguro?`, async () => {
     state.roster = state.roster.filter(p => p.id !== id);
     await saveRoster();
-    if(state.responses[id]){ delete state.responses[id]; await saveResponses(); }
+    if(state.responses[id]){ delete state.responses[id]; try{ await deleteOneResponseRaw(state.gameId, id); }catch(e){} }
     if(state.seasonScores[id] !== undefined){ delete state.seasonScores[id]; await saveSeasonScores(); }
     if(state.reviewingId === id) state.reviewingId = null;
     render();
@@ -618,10 +662,7 @@ async function newGame(keepQuestions){
     state.gameId = gid;
     state.responses = {};
     state.photoCache = {};
-    try{
-      await window.storage.set('gameId', gid, true);
-      await window.storage.set('responses:'+gid, JSON.stringify({}), true);
-    }catch(e){ console.error(e); }
+    try{ await window.storage.set('gameId', gid, true); }catch(e){ console.error(e); }
     render();
   });
 }
@@ -851,10 +892,35 @@ function renderQuestion(q, idx, total){
     inner = `<textarea class="textinput" id="freeTextInput" placeholder="Escribí tu respuesta">${escapeHtml(state.draftAnswer || '')}</textarea>`;
   } else if(q.type === 'foto'){
     const photo = state.photoCache[questionPhotoKey(q)];
-    inner = `
-      <div class="photo-box">${photo ? `<img src="${photo}" alt="foto">` : ''}</div>
-      <input class="textinput" id="freeTextInput" placeholder="¿Quién es?" value="${escapeAttr(state.draftAnswer || '')}">
+    if(state.answered){
+      inner = `
+        <div class="photo-box clear">${photo ? `<img src="${photo}" alt="foto">` : ''}</div>
+        ${q.correctText ? `<div class="fb-banner">Era: <b>${escapeHtml(q.correctText)}</b></div>` : ''}
+      `;
+    } else {
+      inner = `
+        <div class="photo-box">${photo ? `<img src="${photo}" alt="foto">` : ''}</div>
+        <input class="textinput" id="freeTextInput" placeholder="¿Quién es?" value="${escapeAttr(state.draftAnswer || '')}">
+      `;
+    }
+  }
+
+  let bottomControls = '';
+  if(q.type === 'foto'){
+    bottomControls = state.answered ? `
+      <button class="confirm-btn" id="nextBtn">${idx+1 < total ? 'Siguiente pregunta' : 'Terminar'}</button>
+    ` : `
+      <button class="confirm-btn" id="confirmBtn" ${currentAnswerValid() ? '' : 'disabled'}>Guardar respuesta</button>
     `;
+  } else if(state.answered){
+    bottomControls = `
+      <div class="fb-banner">✔ Respuesta guardada. Podés cambiarla mientras sigas en esta pregunta.</div>
+      <button class="ghost-btn" id="confirmBtn" ${currentAnswerValid() ? '' : 'disabled'}>Actualizar respuesta</button>
+      <div class="hint" style="text-align:center; margin-top:10px;">⚠️ Una vez que avances, no vas a poder volver a cambiarla.</div>
+      <button class="confirm-btn" id="nextBtn" style="margin-top:8px;">${idx+1 < total ? 'Siguiente pregunta' : 'Terminar'}</button>
+    `;
+  } else {
+    bottomControls = `<button class="confirm-btn" id="confirmBtn" ${currentAnswerValid() ? '' : 'disabled'}>Guardar respuesta</button>`;
   }
 
   return `
@@ -865,12 +931,7 @@ function renderQuestion(q, idx, total){
       <div class="qtext">${escapeHtml(q.text)}</div>
       ${refPhoto}
       ${inner}
-      ${state.answered ? `
-        <div class="fb-banner">✔ Respuesta guardada.</div>
-        <button class="confirm-btn" id="nextBtn">${idx+1 < total ? 'Siguiente pregunta' : 'Terminar'}</button>
-      ` : `
-        <button class="confirm-btn" id="confirmBtn" ${currentAnswerValid() ? '' : 'disabled'}>Guardar respuesta</button>
-      `}
+      ${bottomControls}
     </div>
   `;
 }
@@ -897,7 +958,7 @@ function renderSummary(qs){
           ${questionHasPhoto(r.q) ? `<div class="photo-box small clear">${state.photoCache[questionPhotoKey(r.q)] ? `<img src="${state.photoCache[questionPhotoKey(r.q)]}">` : ''}</div>` : ''}
           <div style="flex:1;">
             <div class="recap-q">${escapeHtml(r.q.text)}</div>
-            <div class="recap-a">Tu respuesta: <b>${escapeHtml(formatAnswer(r.q, r.val))}</b></div>
+            <div class="recap-a">Tu respuesta: <b>${escapeHtml(formatAnswer(r.q, r.val))}</b>${r.q.type==='foto' && r.q.correctText ? ` · Era: <b>${escapeHtml(r.q.correctText)}</b>` : ''}</div>
           </div>
         </div>
       `).join('')}
@@ -1290,7 +1351,7 @@ function attachEvents(){
     const entry = myEntry();
     entry.answers[q.id] = val;
     entry.name = state.myName;
-    await saveResponses();
+    await saveResponseFor(state.myId);
     state.answered = true;
     render();
   };
@@ -1564,7 +1625,7 @@ function attachEvents(){
       if(!state.responses[pid]) state.responses[pid] = { name: findRosterName(pid) || pid, answers:{}, reviewed:{} };
       if(!state.responses[pid].reviewed) state.responses[pid].reviewed = {};
       state.responses[pid].reviewed[qid] = state.responses[pid].reviewed[qid] === mark ? null : mark;
-      await saveResponses();
+      await saveResponseFor(pid);
       render();
     };
   });
@@ -1578,7 +1639,7 @@ function attachEvents(){
         if(!nuevo || !nuevo.trim()) return;
         p.name = nuevo.trim();
         await saveRoster();
-        if(state.responses[id]){ state.responses[id].name = p.name; await saveResponses(); }
+        if(state.responses[id]){ state.responses[id].name = p.name; await saveResponseFor(id); }
         render();
       });
     };
