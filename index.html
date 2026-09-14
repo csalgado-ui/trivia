@@ -170,21 +170,25 @@
   .photo-box.small{aspect-ratio:1/1; width:64px; height:64px; border-radius:10px; flex-shrink:0;}
   .photo-box.small img{filter:blur(6px) grayscale(.15);}
   .photo-box.clear img{filter:none; transform:none;}
-  .photo-box.glitch img{
-    filter:blur(4px) contrast(2.3) saturate(0) brightness(1.1);
+  .photo-box.glass img{
+    filter:blur(4px) contrast(1.9) saturate(.25) brightness(1.08);
     transform:scale(1.06);
   }
-  .photo-box.glitch::after{
+  .photo-box.glass::before{
     content:"";
     position:absolute; inset:0; pointer-events:none;
-    background:repeating-linear-gradient(0deg, rgba(0,0,0,.6) 0px, rgba(0,0,0,.6) 5px, transparent 5px, transparent 9px);
-    mix-blend-mode:multiply;
+    background:repeating-conic-gradient(from 15deg at 32% 42%, rgba(255,255,255,.16) 0deg 9deg, rgba(0,0,0,.16) 9deg 18deg);
+    mix-blend-mode:overlay;
   }
-  .photo-box.glitch::before{
+  .photo-box.glass::after{
     content:"";
     position:absolute; inset:0; pointer-events:none;
-    background:repeating-linear-gradient(90deg, rgba(0,0,0,.4) 0px, rgba(0,0,0,.4) 4px, transparent 4px, transparent 12px);
-    mix-blend-mode:multiply;
+    background:
+      repeating-linear-gradient(12deg, rgba(255,255,255,.6) 0px, rgba(255,255,255,.6) 1.5px, transparent 1.5px, transparent 36px),
+      repeating-linear-gradient(-34deg, rgba(255,255,255,.5) 0px, rgba(255,255,255,.5) 1.5px, transparent 1.5px, transparent 48px),
+      repeating-linear-gradient(74deg, rgba(255,255,255,.4) 0px, rgba(255,255,255,.4) 1px, transparent 1px, transparent 60px),
+      repeating-linear-gradient(-58deg, rgba(255,255,255,.3) 0px, rgba(255,255,255,.3) 1px, transparent 1px, transparent 70px);
+    mix-blend-mode:screen;
   }
 
   /* ---- recap ---- */
@@ -657,7 +661,7 @@ function questionPhotoKey(q){ return q.photoGroupId || q.id; }
 function fotoVariant(q){
   const fotos = state.questions.filter(x => x.type === 'foto');
   const i = fotos.findIndex(x => x.id === q.id);
-  return i === 1 ? 'glitch' : ''; // la 1ra usa el desenfoque de base; la 2da (y siguientes pares) se "rompe" distinto
+  return i === 1 ? 'glass' : ''; // la 1ra usa el desenfoque de base; la 2da (y siguientes pares) se "rompe" como vidrio
 }
 
 function sortedQuestions(){
