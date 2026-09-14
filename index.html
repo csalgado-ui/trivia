@@ -158,17 +158,34 @@
   }
 
   .photo-box{
+    position:relative;
     width:100%; border-radius:14px; overflow:hidden; margin-bottom:14px; background:#000;
     aspect-ratio:4/3; display:flex; align-items:center; justify-content:center;
   }
   .photo-box img{
     width:100%; height:100%; object-fit:cover;
-    filter:blur(15px) grayscale(.15) contrast(1.05);
-    transform:scale(1.08);
+    filter:blur(7px) grayscale(.1) contrast(1.05);
+    transform:scale(1.04);
   }
   .photo-box.small{aspect-ratio:1/1; width:64px; height:64px; border-radius:10px; flex-shrink:0;}
   .photo-box.small img{filter:blur(6px) grayscale(.15);}
   .photo-box.clear img{filter:none; transform:none;}
+  .photo-box.glitch img{
+    filter:contrast(1.7) saturate(.2) hue-rotate(8deg) brightness(1.05);
+    transform:scale(1.02);
+  }
+  .photo-box.glitch::after{
+    content:"";
+    position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.45) 0px, rgba(0,0,0,.45) 3px, transparent 3px, transparent 7px);
+    mix-blend-mode:multiply;
+  }
+  .photo-box.glitch::before{
+    content:"";
+    position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0px, rgba(255,255,255,.06) 2px, transparent 2px, transparent 10px);
+    mix-blend-mode:overlay;
+  }
 
   /* ---- recap ---- */
   .recap-row{
@@ -415,7 +432,7 @@ async function deleteOneResponseRaw(gameId, playerId){
 }
 
 const TYPE_LABEL = { tf:'Verdadero / Falso', choice:'Opción múltiple', texto:'Texto libre', foto:'Foto: ¿quién es?' };
-const DEFAULT_ROSTER = [{"id": "p-tomas-augustovski", "name": "Tomas Augustovski"}, {"id": "p-lucas-bacigalupo", "name": "Lucas Bacigalupo"}, {"id": "p-gregorio-augusto-bau", "name": "Gregorio Augusto Bau"}, {"id": "p-franco-becerra", "name": "Franco Becerra"}, {"id": "p-guido-bottignole-gonzalez", "name": "Guido Bottignole Gonzalez"}, {"id": "p-joaquin-carrara", "name": "Joaquín Carrara"}, {"id": "p-guido-casazza", "name": "Guido Casazza"}, {"id": "p-joaquin-nicolas-cejas-cuello", "name": "Joaquin Nicolás Cejas Cuello"}, {"id": "p-felipe-celnik-villa", "name": "Felipe Celnik Villa"}, {"id": "p-agustin-codo", "name": "Agustin Codo"}, {"id": "p-santiago-corbo", "name": "Santiago Corbo"}, {"id": "p-felipe-joaquin-couto-gutierrez", "name": "Felipe Joaquin Couto Gutierrez"}, {"id": "p-ignacio-de-crocci", "name": "Ignacio De Crocci"}, {"id": "p-inaki-etchmendy-de-la-serna", "name": "Iñaki Etchmendy de la Serna"}, {"id": "p-lorenzo-fernandez-piquin", "name": "Lorenzo Fernandez Piquin"}, {"id": "p-francisco-galli", "name": "Francisco Galli"}, {"id": "p-benicio-gonzalez-gale", "name": "Benicio Gonzalez Gale"}, {"id": "p-stefano-greppi", "name": "Stefano Greppi"}, {"id": "p-tomas-lew-ulrich", "name": "Tomas Lew Ulrich"}, {"id": "p-pedro-llavallol", "name": "Pedro Llavallol"}, {"id": "p-bautista-loye", "name": "Bautista Loye"}, {"id": "p-juan-ignacio-martello", "name": "Juan Ignacio Martello"}, {"id": "p-juan-ignacio-olaiz", "name": "Juan Ignacio Olaiz"}, {"id": "p-simon-paul", "name": "Simon Paul"}, {"id": "p-felipe-perez-arrieu", "name": "Felipe Pérez Arrieu"}, {"id": "p-ignacio-simon-peydro-alecha", "name": "Ignacio Simon Peydro Alecha"}, {"id": "p-galo-rodriguez-pistorio", "name": "Galo Rodriguez Pistorio"}, {"id": "p-joaquin-rosello", "name": "Joaquin Rosello"}, {"id": "p-ramon-hector-salanueva", "name": "Ramon Hector Salanueva"}, {"id": "p-felipe-agustin-soria-gonzalez", "name": "Felipe Agustin Soria Gonzalez"}, {"id": "p-pedro-staudenmann", "name": "Pedro Staudenmann"}, {"id": "p-mateo-temchuk", "name": "Mateo Temchuk"}, {"id": "p-baltazar-sanchez", "name": "Baltazar Sanchez"}, {"id": "p-javier-rogberg", "name": "Javier Rogberg"}, {"id": "p-juan-ignacio-de-renzis", "name": "Juan Ignacio De Renzis"}]; // plantel inicial (se usa solo la primera vez, si todavía no hay plantel guardado)
+const DEFAULT_ROSTER = [{"id": "p-tomas-augustovski", "name": "Tomas Augustovski", "apellido": "Augustovski"}, {"id": "p-lucas-bacigalupo", "name": "Lucas Bacigalupo", "apellido": "Bacigalupo"}, {"id": "p-gregorio-augusto-bau", "name": "Gregorio Augusto Bau", "apellido": "Bau"}, {"id": "p-franco-becerra", "name": "Franco Becerra", "apellido": "Becerra"}, {"id": "p-guido-bottignole-gonzalez", "name": "Guido Bottignole Gonzalez", "apellido": "Bottignole Gonzalez"}, {"id": "p-joaquin-carrara", "name": "Joaquín Carrara", "apellido": "Carrara"}, {"id": "p-guido-casazza", "name": "Guido Casazza", "apellido": "Casazza"}, {"id": "p-joaquin-nicolas-cejas-cuello", "name": "Joaquin Nicolás Cejas Cuello", "apellido": "Cejas Cuello"}, {"id": "p-felipe-celnik-villa", "name": "Felipe Celnik Villa", "apellido": "Celnik Villa"}, {"id": "p-agustin-codo", "name": "Agustin Codo", "apellido": "Codo"}, {"id": "p-santiago-corbo", "name": "Santiago Corbo", "apellido": "Corbo"}, {"id": "p-felipe-joaquin-couto-gutierrez", "name": "Felipe Joaquin Couto Gutierrez", "apellido": "Couto Gutierrez"}, {"id": "p-ignacio-de-crocci", "name": "Ignacio De Crocci", "apellido": "De Crocci"}, {"id": "p-inaki-etchmendy-de-la-serna", "name": "Iñaki Etchmendy de la Serna", "apellido": "Etchmendy de la Serna"}, {"id": "p-lorenzo-fernandez-piquin", "name": "Lorenzo Fernandez Piquin", "apellido": "Fernandez Piquin"}, {"id": "p-francisco-galli", "name": "Francisco Galli", "apellido": "Galli"}, {"id": "p-benicio-gonzalez-gale", "name": "Benicio Gonzalez Gale", "apellido": "Gonzalez Gale"}, {"id": "p-stefano-greppi", "name": "Stefano Greppi", "apellido": "Greppi"}, {"id": "p-tomas-lew-ulrich", "name": "Tomas Lew Ulrich", "apellido": "Lew Ulrich"}, {"id": "p-pedro-llavallol", "name": "Pedro Llavallol", "apellido": "Llavallol"}, {"id": "p-bautista-loye", "name": "Bautista Loye", "apellido": "Loye"}, {"id": "p-juan-ignacio-martello", "name": "Juan Ignacio Martello", "apellido": "Martello"}, {"id": "p-juan-ignacio-olaiz", "name": "Juan Ignacio Olaiz", "apellido": "Olaiz"}, {"id": "p-simon-paul", "name": "Simon Paul", "apellido": "Paul"}, {"id": "p-felipe-perez-arrieu", "name": "Felipe Pérez Arrieu", "apellido": "Pérez Arrieu"}, {"id": "p-ignacio-simon-peydro-alecha", "name": "Ignacio Simon Peydro Alecha", "apellido": "Peydro Alecha"}, {"id": "p-galo-rodriguez-pistorio", "name": "Galo Rodriguez Pistorio", "apellido": "Rodriguez Pistorio"}, {"id": "p-joaquin-rosello", "name": "Joaquin Rosello", "apellido": "Rosello"}, {"id": "p-ramon-hector-salanueva", "name": "Ramon Hector Salanueva", "apellido": "Salanueva"}, {"id": "p-felipe-agustin-soria-gonzalez", "name": "Felipe Agustin Soria Gonzalez", "apellido": "Soria Gonzalez"}, {"id": "p-pedro-staudenmann", "name": "Pedro Staudenmann", "apellido": "Staudenmann"}, {"id": "p-mateo-temchuk", "name": "Mateo Temchuk", "apellido": "Temchuk"}, {"id": "p-baltazar-sanchez", "name": "Baltazar Sanchez", "apellido": "Sanchez"}, {"id": "p-javier-rogberg", "name": "Javier Rogberg", "apellido": "Rogberg"}, {"id": "p-juan-ignacio-de-renzis", "name": "Juan Ignacio De Renzis", "apellido": "De Renzis"}]; // plantel inicial (se usa solo la primera vez, si todavía no hay plantel guardado)
 
 const AUTO_RESET_MS = 12000; // tiempo que se muestra el repaso antes de reiniciar solo para el próximo jugador
 let summaryTimeoutId = null;
@@ -538,16 +555,23 @@ async function deletePlayerCompletely(id){
 async function savePassword(p){ try{ await window.storage.set('coachPass', p, true); state.coachPass = p; }catch(e){ console.error(e); } }
 async function setMyId(id, name){ state.myId = id; state.myName = name; try{ await window.storage.set('my_id', id, false); await window.storage.set('my_name', name, false); }catch(e){} }
 async function loadDefaultRoster(){
-  let added = 0;
+  let added = 0, fixed = 0;
   for(const p of DEFAULT_ROSTER){
-    if(!state.roster.some(r => r.name.toLowerCase() === p.name.toLowerCase())){
-      state.roster.push({ id: p.id, name: p.name });
+    const existing = state.roster.find(r => r.name.toLowerCase() === p.name.toLowerCase());
+    if(!existing){
+      state.roster.push({ id: p.id, name: p.name, apellido: p.apellido });
       added++;
+    } else if(p.apellido && existing.apellido !== p.apellido){
+      existing.apellido = p.apellido;
+      fixed++;
     }
   }
-  if(added > 0) await saveRoster();
+  if(added > 0 || fixed > 0) await saveRoster();
   render();
-  showAlert(added > 0 ? `Se agregaron ${added} jugador(es) que faltaban.` : 'Ya estaban todos los jugadores del plantel inicial.');
+  const parts = [];
+  if(added > 0) parts.push(`se agregaron ${added} jugador(es) que faltaban`);
+  if(fixed > 0) parts.push(`se corrigió el apellido de ${fixed} jugador(es) para que ordenen bien`);
+  showAlert(parts.length ? (parts.join(' y ') + '.') : 'Ya estaban todos los jugadores del plantel inicial, con los apellidos al día.');
 }
 async function switchPlayer(){
   clearSummaryTimer();
@@ -613,10 +637,28 @@ function playerSeasonTotal(id){
   // acumulado de semanas anteriores + lo revisado en el juego actual (solo lo ve el entrenador)
   return (state.seasonScores[id] || 0) + playerScore(id);
 }
+function lastNameOf(fullName){
+  const parts = String(fullName || '').trim().split(/\s+/);
+  return parts.length ? parts[parts.length - 1] : '';
+}
+function apellidoFor(id, fallbackName){
+  const p = state.roster.find(p => p.id === id);
+  if(p && p.apellido) return p.apellido;
+  return lastNameOf(fallbackName);
+}
+function hasStartedAnswering(id){
+  const entry = state.responses[id];
+  return !!(entry && Object.keys(entry.answers || {}).length > 0);
+}
 
 /* ---------- game logic ---------- */
 function questionHasPhoto(q){ return q.type === 'foto' || !!q.hasPhoto || !!q.photoGroupId; }
 function questionPhotoKey(q){ return q.photoGroupId || q.id; }
+function fotoVariant(q){
+  const fotos = state.questions.filter(x => x.type === 'foto');
+  const i = fotos.findIndex(x => x.id === q.id);
+  return i === 1 ? 'glitch' : ''; // la 1ra usa el desenfoque de base; la 2da (y siguientes pares) se "rompe" distinto
+}
 
 function sortedQuestions(){
   const normal = state.questions.filter(q => q.type !== 'foto');
@@ -899,7 +941,7 @@ function renderQuestion(q, idx, total){
       `;
     } else {
       inner = `
-        <div class="photo-box">${photo ? `<img src="${photo}" alt="foto">` : ''}</div>
+        <div class="photo-box ${fotoVariant(q)}">${photo ? `<img src="${photo}" alt="foto">` : ''}</div>
         <input class="textinput" id="freeTextInput" placeholder="¿Quién es?" value="${escapeAttr(state.draftAnswer || '')}">
       `;
     }
@@ -1186,7 +1228,13 @@ function renderCoachJugadores(){
     `;
   }
 
-  const sortedIds = [...ids].sort((a,b) => playerSeasonTotal(b) - playerSeasonTotal(a) || a.localeCompare(b));
+  const sortedIds = [...ids].sort((a,b) => {
+    const aName = findRosterName(a) || state.responses[a]?.name || a;
+    const bName = findRosterName(b) || state.responses[b]?.name || b;
+    const started = (hasStartedAnswering(b) ? 1 : 0) - (hasStartedAnswering(a) ? 1 : 0);
+    if(started !== 0) return started;
+    return apellidoFor(a, aName).localeCompare(apellidoFor(b, bName), 'es', { sensitivity: 'base' });
+  });
   return `
     <div class="card">
       <button class="ghost-btn" id="downloadExcelBtn" style="margin-top:0;">⬇️ Descargar respuestas (Excel)</button>
@@ -1232,7 +1280,13 @@ function renderCoachJugadores(){
 
 function renderCoachJuego(){
   const ids = allPlayerIds();
-  const sortedIds = [...ids].sort((a,b) => playerSeasonTotal(b) - playerSeasonTotal(a) || a.localeCompare(b));
+  const sortedIds = [...ids].sort((a,b) => {
+    const aName = findRosterName(a) || state.responses[a]?.name || a;
+    const bName = findRosterName(b) || state.responses[b]?.name || b;
+    const started = (hasStartedAnswering(b) ? 1 : 0) - (hasStartedAnswering(a) ? 1 : 0);
+    if(started !== 0) return started;
+    return apellidoFor(a, aName).localeCompare(apellidoFor(b, bName), 'es', { sensitivity: 'base' });
+  });
   return `
     <div class="card">
       <h3>Administrar el juego</h3>
