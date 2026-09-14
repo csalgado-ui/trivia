@@ -171,20 +171,20 @@
   .photo-box.small img{filter:blur(6px) grayscale(.15);}
   .photo-box.clear img{filter:none; transform:none;}
   .photo-box.glitch img{
-    filter:contrast(1.7) saturate(.2) hue-rotate(8deg) brightness(1.05);
-    transform:scale(1.02);
+    filter:blur(4px) contrast(2.3) saturate(0) brightness(1.1);
+    transform:scale(1.06);
   }
   .photo-box.glitch::after{
     content:"";
     position:absolute; inset:0; pointer-events:none;
-    background:repeating-linear-gradient(0deg, rgba(0,0,0,.45) 0px, rgba(0,0,0,.45) 3px, transparent 3px, transparent 7px);
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.6) 0px, rgba(0,0,0,.6) 5px, transparent 5px, transparent 9px);
     mix-blend-mode:multiply;
   }
   .photo-box.glitch::before{
     content:"";
     position:absolute; inset:0; pointer-events:none;
-    background:repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0px, rgba(255,255,255,.06) 2px, transparent 2px, transparent 10px);
-    mix-blend-mode:overlay;
+    background:repeating-linear-gradient(90deg, rgba(0,0,0,.4) 0px, rgba(0,0,0,.4) 4px, transparent 4px, transparent 12px);
+    mix-blend-mode:multiply;
   }
 
   /* ---- recap ---- */
@@ -1233,7 +1233,7 @@ function renderCoachJugadores(){
     const bName = findRosterName(b) || state.responses[b]?.name || b;
     const started = (hasStartedAnswering(b) ? 1 : 0) - (hasStartedAnswering(a) ? 1 : 0);
     if(started !== 0) return started;
-    return apellidoFor(a, aName).localeCompare(apellidoFor(b, bName), 'es', { sensitivity: 'base' });
+    return aName.localeCompare(bName, 'es', { sensitivity: 'base' });
   });
   return `
     <div class="card">
@@ -1285,7 +1285,7 @@ function renderCoachJuego(){
     const bName = findRosterName(b) || state.responses[b]?.name || b;
     const started = (hasStartedAnswering(b) ? 1 : 0) - (hasStartedAnswering(a) ? 1 : 0);
     if(started !== 0) return started;
-    return apellidoFor(a, aName).localeCompare(apellidoFor(b, bName), 'es', { sensitivity: 'base' });
+    return aName.localeCompare(bName, 'es', { sensitivity: 'base' });
   });
   return `
     <div class="card">
